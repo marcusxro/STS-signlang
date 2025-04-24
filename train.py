@@ -7,8 +7,7 @@ import numpy as np
 # Load data
 data_dict = pickle.load(open('./data.pickle', 'rb'))
 
-# Inspect and filter data
-expected_length = 63  # adjust this if your feature vector should be longer/shorter
+expected_length = 63  
 
 filtered_data = []
 filtered_labels = []
