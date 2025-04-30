@@ -4,7 +4,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import numpy as np
 
-# Load data
 data_dict = pickle.load(open('./data.pickle', 'rb'))
 
 expected_length = 63  
@@ -17,16 +16,13 @@ for d, l in zip(data_dict['data'], data_dict['labels']):
         filtered_data.append(d)
         filtered_labels.append(l)
 
-# Convert to numpy arrays
 data = np.asarray(filtered_data)
 labels = np.asarray(filtered_labels)
 
-# Split the data
 x_train, x_test, y_train, y_test = train_test_split(
     data, labels, test_size=0.2, shuffle=True, stratify=labels
 )
 
-# Train the model
 model = RandomForestClassifier()
 model.fit(x_train, y_train)
 
