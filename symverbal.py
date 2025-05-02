@@ -17,18 +17,14 @@ class ASLTranslatorApp:
         self.root.title("SymVerbal - ASL Translator")
         self.root.geometry("1200x800")
         
-        # Load model
         self.model = pickle.load(open('./model.p', 'rb'))['model']
         
-        # Initialize MediaPipe Hands
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
         
-        # Initialize text-to-speech with error handling
         self.engine = None
         self.tts_available = self.initialize_tts()
         
-        # Initialize speech recognition
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone()
         self.speech_recognition_active = False
@@ -41,13 +37,13 @@ class ASLTranslatorApp:
         # GUI variables
         self.current_sign = ""
         self.translation_text = ""
-        self.hearing_text = ""  # Text from speech recognition
+        self.hearing_text = "" 
         self.stable_sign = ""
         self.last_sign_time = 0
-        self.sign_stable_time = 1.5  # seconds to consider sign stable
+        self.sign_stable_time = 1.5 
         self.camera_shot_effect = False
         self.effect_start_time = 0
-        self.effect_duration = 0.5  # seconds
+        self.effect_duration = 0.5  
         self.last_added_sign = None
         self.last_added_time = 0
         self.speech_queue = queue.Queue()
@@ -55,24 +51,20 @@ class ASLTranslatorApp:
         self.listening = False
         self.current_speaker = None  
         
-        # Thread-safe queue for frame updates
+
         self.frame_queue = queue.Queue(maxsize=1)
         
-        # Create GUI
         self.create_widgets()
         
-        # Start video processing thread
         self.running = True
         self.video_thread = threading.Thread(target=self.process_video)
         self.video_thread.daemon = True
         self.video_thread.start()
         
-        # Start speech processing thread
         self.speech_thread = threading.Thread(target=self.process_speech_queue)
         self.speech_thread.daemon = True
         self.speech_thread.start()
         
-        # Start speech recognition thread
         self.speech_recognition_thread = threading.Thread(target=self.process_speech_recognition)
         self.speech_recognition_thread.daemon = True
         self.speech_recognition_thread.start()
@@ -87,7 +79,7 @@ class ASLTranslatorApp:
 
             voices = self.engine.getProperty('voices')
             if voices:
-                self.engine.setProperty('voice', voices[0].id)  # Use first available voice
+                self.engine.setProperty('voice', voices[0].id) 
             self.engine.setProperty('rate', 150)
 
             self.engine.say(" ")
@@ -98,18 +90,18 @@ class ASLTranslatorApp:
             return False
         
     def create_widgets(self):
-        # Main container
+      
         main_frame = ttk.Frame(self.root, padding="10")
         main_frame.pack(fill=tk.BOTH, expand=True)
         
-        # Camera frame
+
         self.camera_frame = ttk.LabelFrame(main_frame, text="Camera Input", padding="10")
         self.camera_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
         
         self.camera_label = ttk.Label(self.camera_frame)
         self.camera_label.pack()
         
-        # Translation frame
+
         translation_frame = ttk.LabelFrame(main_frame, text="ASL Translation (You)", padding="10")
         translation_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
         
@@ -120,7 +112,7 @@ class ASLTranslatorApp:
             font=('Arial', 16), 
             wrap=tk.WORD,
             state='disabled',
-            bg='#e6f7ff'  #  ASL user
+            bg='#e6f7ff' 
         )
         self.translation_display.pack(fill=tk.BOTH, expand=True)
         
@@ -135,11 +127,11 @@ class ASLTranslatorApp:
             font=('Arial', 16), 
             wrap=tk.WORD,
             state='disabled',
-            bg='#fff2e6'  # voice user
+            bg='#fff2e6'
         )
         self.hearing_display.pack(fill=tk.BOTH, expand=True)
         
-        # Speaker indicator
+
         self.speaker_indicator = ttk.Label(
             main_frame, 
             text="Current Speaker: None", 
@@ -148,7 +140,7 @@ class ASLTranslatorApp:
         )
         self.speaker_indicator.grid(row=1, column=0, sticky="n", pady=10)
         
-        # Controls frame
+
         controls_frame = ttk.Frame(main_frame)
         controls_frame.grid(row=2, column=0, columnspan=2, sticky="ew", pady=10)
         
@@ -177,7 +169,7 @@ class ASLTranslatorApp:
         tts_status = " (TTS Available)" if self.tts_available else " (TTS Unavailable)"
         ttk.Label(controls_frame, text=tts_status).pack(side=tk.LEFT, padx=10)
         
-        # Configure grid weights
+
         main_frame.columnconfigure(0, weight=1)
         main_frame.columnconfigure(1, weight=1)
         main_frame.rowconfigure(0, weight=1)
@@ -260,14 +252,14 @@ class ASLTranslatorApp:
                     data_aux.append(lm.x - min_x)
                     data_aux.append(lm.y - min_y)
                 
-                # Create bounding box
+                # bounding box
                 if x_ and y_:  
                     x1 = max(0, int(min(x_) * W) - 10)
                     y1 = max(0, int(min(y_) * H) - 10)
                     x2 = min(W, int(max(x_) * W) + 10)
                     y2 = min(H, int(max(y_) * H) + 10)
                     
-                    if x1 < x2 and y1 < y2:  # Only valid boxes
+                    if x1 < x2 and y1 < y2: 
                         bbox = (x1, y1, x2, y2)
                         
                     
@@ -390,19 +382,19 @@ class ASLTranslatorApp:
         except queue.Empty:
             pass
         
-        # Update ASL translation display
+
         self.translation_display.config(state='normal')
         self.translation_display.delete(1.0, tk.END)
         self.translation_display.insert(tk.END, self.translation_text)
         self.translation_display.config(state='disabled')
         
-        # Update voice recognition display
+
         self.hearing_display.config(state='normal')
         self.hearing_display.delete(1.0, tk.END)
         self.hearing_display.insert(tk.END, self.hearing_text)
         self.hearing_display.config(state='disabled')
         
-        # Update listening button state
+
         if self.listening:
             self.listen_button.config(text="Listening...")
         elif self.speech_recognition_active:
@@ -410,7 +402,7 @@ class ASLTranslatorApp:
         else:
             self.listen_button.config(text="Start Listening")
         
-        # Schedule next update
+
         if self.running:
             self.root.after(30, self.update_gui)
     
